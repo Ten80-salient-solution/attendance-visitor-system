@@ -4,10 +4,11 @@ import {
   Smartphone, MapPin, Camera, RefreshCw
 } from 'lucide-react';
 import { 
-  getStaff, getAttendance, saveAttendance, getSettings, addAuditLog, saveStaff 
+  getStaff, getAttendance, saveAttendance, getSettings, addAuditLog, saveStaff, syncWithCloud
 } from '../utils/mockDb';
 import { getDistanceInMeters } from '../utils/geo';
 import type { AttendanceRecord, StaffMember } from '../types';
+import jsQR from 'jsqr';
 
 export const StaffPortal: React.FC = () => {
   // Portal Flow State: 'login' | 'gps-request' | 'scanner' | 'success'
@@ -18,6 +19,25 @@ export const StaffPortal: React.FC = () => {
   const [staffPassword, setStaffPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [authenticatedStaff, setAuthenticatedStaff] = useState<StaffMember | null>(null);
+
+  // Database sync event listener and polling
+  const [syncTrigger, setSyncTrigger] = useState(0);
+
+  useEffect(() => {
+    const handleSync = () => {
+      setSyncTrigger(prev => prev + 1);
+    };
+    window.addEventListener('ten80_db_sync', handleSync);
+    return () => window.removeEventListener('ten80_db_sync', handleSync);
+  }, []);
+
+  useEffect(() => {
+    syncWithCloud();
+    const interval = setInterval(() => {
+      syncWithCloud();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Self-service password change
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -38,6 +58,7 @@ export const StaffPortal: React.FC = () => {
   // Camera stream ref
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const scanFrameIdRef = useRef<number | null>(null);
 
   const officeSettings = getSettings();
   const staffList = getStaff();
@@ -73,16 +94,66 @@ export const StaffPortal: React.FC = () => {
         video: { facingMode: 'environment' }
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
     } catch (err: any) {
       console.warn("Camera access denied or unavailable: ", err.message);
-      // We don't crash, we just show a warning. Users can still use the simulation buttons!
     }
   };
 
+  const startScanningLoop = () => {
+    if (scanFrameIdRef.current) {
+      cancelAnimationFrame(scanFrameIdRef.current);
+    }
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const tick = () => {
+      if (!videoRef.current || videoRef.current.readyState !== videoRef.current.HAVE_ENOUGH_DATA) {
+        scanFrameIdRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      const width = videoRef.current.videoWidth;
+      const height = videoRef.current.videoHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0, width, height);
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert',
+        });
+
+        if (code && code.data) {
+          handleQRScanned(code.data);
+          return;
+        }
+      }
+      scanFrameIdRef.current = requestAnimationFrame(tick);
+    };
+    scanFrameIdRef.current = requestAnimationFrame(tick);
+  };
+
+  useEffect(() => {
+    if (cameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.setAttribute('playsinline', 'true');
+      videoRef.current.play().catch(err => console.warn("Video play failed:", err));
+      startScanningLoop();
+    }
+    return () => {
+      if (scanFrameIdRef.current) {
+        cancelAnimationFrame(scanFrameIdRef.current);
+        scanFrameIdRef.current = null;
+      }
+    };
+  }, [cameraActive, videoRef.current, streamRef.current]);
+
   const stopCamera = () => {
+    if (scanFrameIdRef.current) {
+      cancelAnimationFrame(scanFrameIdRef.current);
+      scanFrameIdRef.current = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
@@ -449,7 +520,7 @@ export const StaffPortal: React.FC = () => {
                 type="text"
                 required
                 className="form-input"
-                placeholder="Ekene Anyaegbu"
+                placeholder=""
                 style={{ paddingLeft: '2.5rem' }}
                 value={staffName}
                 onChange={(e) => setStaffName(e.target.value)}
@@ -570,29 +641,6 @@ export const StaffPortal: React.FC = () => {
               <div style={{ position: 'absolute', left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, #ef4444, transparent)', animation: 'fadeIn 2s infinite alternate', top: '30%' }}></div>
             </div>
           </div>
-
-          {/* Test Buttons - Simulate Scanner */}
-          <div style={{ backgroundColor: 'var(--bg-tertiary)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.5rem', textAlign: 'center' }}>
-              💻 Scanner Simulator Widget (For Testers)
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-              <button 
-                onClick={() => handleQRScanned(officeSettings.staffQRToken || 'TEN80_STAFF_TOKEN_2026')}
-                className="btn btn-primary"
-                style={{ fontSize: '0.75rem', padding: '0.5rem' }}
-              >
-                Scan Correct Fixed QR
-              </button>
-              <button 
-                onClick={() => handleQRScanned('INVALID_SCAN_CODE_XYZ')}
-                className="btn btn-danger"
-                style={{ fontSize: '0.75rem', padding: '0.5rem' }}
-              >
-                Scan Fake QR Code
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
@@ -651,7 +699,7 @@ export const StaffPortal: React.FC = () => {
         <Smartphone size={12} />
         <span>GPS Authorization is locked to portal session audits.</span>
       </div>
-
+      <span style={{ display: 'none' }}>{syncTrigger}</span>
     </div>
   );
 };

@@ -8,7 +8,7 @@ import {
 import { 
   getSettings, getStaff, addStaff, removeStaff, saveStaff,
   getAttendance, saveAttendance, getVisitors, saveVisitors, 
-  getAuditLogs, addAuditLog, DEFAULT_AVATAR
+  getAuditLogs, addAuditLog, DEFAULT_AVATAR, syncWithCloud
 } from '../utils/mockDb';
 import { exportToCSV, exportToExcel, exportToPDF } from '../utils/export';
 import type { StaffMember, AttendanceRecord, VisitorRecord, AuditLog } from '../types';
@@ -80,6 +80,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
   useEffect(() => {
     reloadData();
   }, [activeTab]);
+
+  // Listen for background sync updates
+  useEffect(() => {
+    const handleSync = () => {
+      reloadData();
+    };
+    window.addEventListener('ten80_db_sync', handleSync);
+    return () => window.removeEventListener('ten80_db_sync', handleSync);
+  }, []);
+
+  // Poll cloud database periodically to get cross-device updates
+  useEffect(() => {
+    syncWithCloud();
+    const interval = setInterval(() => {
+      syncWithCloud();
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Google Maps Initialization
   useEffect(() => {

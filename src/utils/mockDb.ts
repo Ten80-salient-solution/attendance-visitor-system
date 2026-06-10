@@ -242,6 +242,7 @@ export function getSettings(): OfficeSettings {
 
 export function saveSettings(settings: OfficeSettings): void {
   localStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings));
+  setTimeout(syncWithCloud, 0);
 }
 
 // Staff Directory Get/Set/Add/Remove
@@ -254,15 +255,18 @@ export function addStaff(member: StaffMember): void {
   const staff = getStaff();
   staff.push(member);
   localStorage.setItem(KEYS.STAFF, JSON.stringify(staff));
+  setTimeout(syncWithCloud, 0);
 }
 
 export function saveStaff(staffList: StaffMember[]): void {
   localStorage.setItem(KEYS.STAFF, JSON.stringify(staffList));
+  setTimeout(syncWithCloud, 0);
 }
 
 export function removeStaff(id: string): void {
   const staff = getStaff().filter(s => s.id !== id);
   localStorage.setItem(KEYS.STAFF, JSON.stringify(staff));
+  setTimeout(syncWithCloud, 0);
 }
 
 // Attendance Records
@@ -273,6 +277,7 @@ export function getAttendance(): AttendanceRecord[] {
 
 export function saveAttendance(records: AttendanceRecord[]): void {
   localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify(records));
+  setTimeout(syncWithCloud, 0);
 }
 
 // Visitors
@@ -283,6 +288,7 @@ export function getVisitors(): VisitorRecord[] {
 
 export function saveVisitors(records: VisitorRecord[]): void {
   localStorage.setItem(KEYS.VISITORS, JSON.stringify(records));
+  setTimeout(syncWithCloud, 0);
 }
 
 // Audit Logs
@@ -299,4 +305,149 @@ export function addAuditLog(log: Omit<AuditLog, 'id'>): void {
   };
   logs.unshift(newLog); // Put new logs at the beginning
   localStorage.setItem(KEYS.AUDIT, JSON.stringify(logs));
+  setTimeout(syncWithCloud, 0);
+}
+
+// Cross-device online synchronization layer using kvdb.io
+interface SyncState {
+  settings?: OfficeSettings;
+  staff?: StaffMember[];
+  attendance?: AttendanceRecord[];
+  visitors?: VisitorRecord[];
+  audit?: AuditLog[];
+}
+
+const BUCKET_URL = 'https://kvdb.io/LZPkZC8umVfWtLeKrt6zPk/ten80_db';
+let isSyncing = false;
+
+export async function syncWithCloud(): Promise<void> {
+  if (isSyncing) return;
+  isSyncing = true;
+  try {
+    // 1. Fetch current cloud state
+    const response = await fetch(BUCKET_URL);
+    let cloudData: SyncState = {};
+    if (response.ok) {
+      const text = await response.text();
+      if (text && text.trim()) {
+        cloudData = JSON.parse(text);
+      }
+    }
+
+    // 2. Read local state
+    const localSettings = JSON.parse(localStorage.getItem(KEYS.SETTINGS) || 'null') || getSettings();
+    const localStaff = JSON.parse(localStorage.getItem(KEYS.STAFF) || '[]') as StaffMember[];
+    const localAttendance = JSON.parse(localStorage.getItem(KEYS.ATTENDANCE) || '[]') as AttendanceRecord[];
+    const localVisitors = JSON.parse(localStorage.getItem(KEYS.VISITORS) || '[]') as VisitorRecord[];
+    const localAudit = JSON.parse(localStorage.getItem(KEYS.AUDIT) || '[]') as AuditLog[];
+
+    // 3. Merge Settings
+    const mergedSettings = cloudData.settings ? { ...cloudData.settings, ...localSettings } : localSettings;
+
+    // 4. Merge Staff
+    const staffMap = new Map<string, StaffMember>();
+    (cloudData.staff || []).forEach(s => staffMap.set(s.id, s));
+    localStaff.forEach(s => {
+      const existing = staffMap.get(s.id);
+      if (existing) {
+        staffMap.set(s.id, { ...existing, ...s });
+      } else {
+        staffMap.set(s.id, s);
+      }
+    });
+    const mergedStaff = Array.from(staffMap.values());
+
+    // 5. Merge Attendance
+    const attendanceMap = new Map<string, AttendanceRecord>();
+    (cloudData.attendance || []).forEach(r => attendanceMap.set(r.id, r));
+    localAttendance.forEach(r => {
+      const existing = attendanceMap.get(r.id);
+      if (existing) {
+        const mergedRecord = { ...existing, ...r };
+        if (existing.checkOutTime && !r.checkOutTime) {
+          mergedRecord.checkOutTime = existing.checkOutTime;
+          mergedRecord.status = existing.status;
+        }
+        attendanceMap.set(r.id, mergedRecord);
+      } else {
+        attendanceMap.set(r.id, r);
+      }
+    });
+    const mergedAttendance = Array.from(attendanceMap.values());
+
+    // 6. Merge Visitors
+    const visitorMap = new Map<string, VisitorRecord>();
+    (cloudData.visitors || []).forEach(v => visitorMap.set(v.id, v));
+    localVisitors.forEach(v => {
+      const existing = visitorMap.get(v.id);
+      if (existing) {
+        const mergedVisitor = { ...existing, ...v };
+        if (existing.checkOutTime && !v.checkOutTime) {
+          mergedVisitor.checkOutTime = existing.checkOutTime;
+          mergedVisitor.status = existing.status;
+        }
+        visitorMap.set(v.id, mergedVisitor);
+      } else {
+        visitorMap.set(v.id, v);
+      }
+    });
+    const mergedVisitors = Array.from(visitorMap.values());
+
+    // 7. Merge Audit logs
+    const auditMap = new Map<string, AuditLog>();
+    (cloudData.audit || []).forEach(l => auditMap.set(l.id, l));
+    localAudit.forEach(l => auditMap.set(l.id, l));
+    const mergedAudit = Array.from(auditMap.values()).sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    // 8. Check if anything actually changed
+    const prevSettingsStr = localStorage.getItem(KEYS.SETTINGS);
+    const prevStaffStr = localStorage.getItem(KEYS.STAFF);
+    const prevAttendanceStr = localStorage.getItem(KEYS.ATTENDANCE);
+    const prevVisitorsStr = localStorage.getItem(KEYS.VISITORS);
+    const prevAuditStr = localStorage.getItem(KEYS.AUDIT);
+
+    const nextSettingsStr = JSON.stringify(mergedSettings);
+    const nextStaffStr = JSON.stringify(mergedStaff);
+    const nextAttendanceStr = JSON.stringify(mergedAttendance);
+    const nextVisitorsStr = JSON.stringify(mergedVisitors);
+    const nextAuditStr = JSON.stringify(mergedAudit);
+
+    const dataChanged = 
+      prevSettingsStr !== nextSettingsStr ||
+      prevStaffStr !== nextStaffStr ||
+      prevAttendanceStr !== nextAttendanceStr ||
+      prevVisitorsStr !== nextVisitorsStr ||
+      prevAuditStr !== nextAuditStr;
+
+    if (dataChanged) {
+      localStorage.setItem(KEYS.SETTINGS, nextSettingsStr);
+      localStorage.setItem(KEYS.STAFF, nextStaffStr);
+      localStorage.setItem(KEYS.ATTENDANCE, nextAttendanceStr);
+      localStorage.setItem(KEYS.VISITORS, nextVisitorsStr);
+      localStorage.setItem(KEYS.AUDIT, nextAuditStr);
+      
+      window.dispatchEvent(new CustomEvent('ten80_db_sync'));
+    }
+
+    // 9. Update cloud state
+    const newCloudData: SyncState = {
+      settings: mergedSettings,
+      staff: mergedStaff,
+      attendance: mergedAttendance,
+      visitors: mergedVisitors,
+      audit: mergedAudit
+    };
+
+    await fetch(BUCKET_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newCloudData)
+    });
+  } catch (err) {
+    console.error("Cloud synchronization error: ", err);
+  } finally {
+    isSyncing = false;
+  }
 }

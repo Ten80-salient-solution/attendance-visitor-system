@@ -4,7 +4,7 @@ import {
   User, Check, AlertTriangle, LogIn, LogOut, ArrowLeft
 } from 'lucide-react';
 import { 
-  getVisitors, saveVisitors, addAuditLog
+  getVisitors, saveVisitors, addAuditLog, syncWithCloud
 } from '../utils/mockDb';
 import type { VisitorRecord } from '../types';
 
@@ -33,6 +33,25 @@ export const Portal: React.FC<PortalProps> = ({ initialRole = 'none' }) => {
   // Visitor Checkout State
   const [checkoutSearch, setCheckoutSearch] = useState('');
   const [checkoutMessage, setCheckoutMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  
+  // Re-render trigger on db sync events
+  const [syncTrigger, setSyncTrigger] = useState(0);
+
+  useEffect(() => {
+    const handleSync = () => {
+      setSyncTrigger(prev => prev + 1);
+    };
+    window.addEventListener('ten80_db_sync', handleSync);
+    return () => window.removeEventListener('ten80_db_sync', handleSync);
+  }, []);
+
+  useEffect(() => {
+    syncWithCloud();
+    const interval = setInterval(() => {
+      syncWithCloud();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (initialRole !== 'none') {
@@ -407,6 +426,7 @@ export const Portal: React.FC<PortalProps> = ({ initialRole = 'none' }) => {
           </form>
         </div>
       )}
+      <span style={{ display: 'none' }}>{syncTrigger}</span>
     </div>
   );
 };
