@@ -680,7 +680,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
             <img src="${qrUrl}" alt="Staff QR" width="250" height="250" />
             <div class="instructions">
               SCAN ONLY FROM WITHIN THE STAFF PORTAL<br/>
-              (Visit: ten80salientsolution.com/staff to login & scan)
+              (Visit: ${serverBaseUrl} to login & scan)
             </div>
             <div class="warning">
               ⚠️ Will NOT display anything if scanned with ordinary phone camera.
