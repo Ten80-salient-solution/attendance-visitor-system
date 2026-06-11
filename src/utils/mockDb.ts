@@ -229,7 +229,7 @@ interface SyncState {
   deletedStaff?: string[];
 }
 
-const BUCKET_URL = 'https://kvdb.io/A7k9Xm2Pq5Rt8Yv3Wb4Z6c1d/ten80_production_data';
+const BUCKET_URL = 'https://kvdb.io/VDfaCAzvRSMjSnMzsqg74G/ten80_production_data';
 let isSyncing = false;
 
 export async function syncWithCloud(): Promise<void> {
