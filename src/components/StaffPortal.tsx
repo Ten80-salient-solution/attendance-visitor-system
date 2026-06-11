@@ -364,23 +364,26 @@ export const StaffPortal: React.FC = () => {
     const timestampStr = new Date().toISOString();
     const attendanceLogs = getAttendance();
 
-    // Check if clocked in today
-    let recordIndex = attendanceLogs.findIndex(
-      r => r.email.toLowerCase() === authenticatedStaff.email.toLowerCase() && r.date === todayStr
+    // Find if there is an active session (clocked in but not checked out yet today)
+    let activeRecordIndex = attendanceLogs.findIndex(
+      r => r.email.toLowerCase() === authenticatedStaff.email.toLowerCase() && 
+           r.date === todayStr && 
+           r.checkInTime && 
+           !r.checkOutTime
     );
 
     let updatedRecords = [...attendanceLogs];
     let record: AttendanceRecord;
     let actionType: 'CHECK_IN_SUCCESS' | 'CHECK_OUT_SUCCESS';
 
-    if (recordIndex >= 0 && updatedRecords[recordIndex].checkInTime && !updatedRecords[recordIndex].checkOutTime) {
-      // Perform Check-Out
+    if (activeRecordIndex >= 0) {
+      // Perform Check-Out on the active session
       record = {
-        ...updatedRecords[recordIndex],
+        ...updatedRecords[activeRecordIndex],
         checkOutTime: timestampStr,
         status: `Checked Out (${locationLabel})`
       };
-      updatedRecords[recordIndex] = record;
+      updatedRecords[activeRecordIndex] = record;
       actionType = 'CHECK_OUT_SUCCESS';
     } else {
       // Perform Check-In
@@ -402,8 +405,16 @@ export const StaffPortal: React.FC = () => {
         status: statusLabel
       };
       
-      if (recordIndex >= 0) {
-        updatedRecords[recordIndex] = record;
+      // If there is an 'Absent' or empty check-in record for today, overwrite it.
+      // Otherwise, push a new check-in record (e.g. for multiple check-ins today).
+      const absentRecordIndex = attendanceLogs.findIndex(
+        r => r.email.toLowerCase() === authenticatedStaff.email.toLowerCase() && 
+             r.date === todayStr && 
+             (!r.checkInTime || r.status === 'Absent')
+      );
+
+      if (absentRecordIndex >= 0) {
+        updatedRecords[absentRecordIndex] = record;
       } else {
         updatedRecords.push(record);
       }

@@ -322,14 +322,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
 
   const totalStaffCount = staff.length;
   
-  // Total Staff Present today (having checked in)
-  const staffPresentCount = todayRecords.filter(r => r.checkInTime !== null).length;
+  // Total Staff Present today (having checked in, unique count)
+  const presentEmails = new Set(
+    todayRecords
+      .filter(r => r.checkInTime !== null)
+      .map(r => r.email.toLowerCase())
+  );
+  const staffPresentCount = presentEmails.size;
   
-  // Total Staff Absent today (registered staff who have no attendance record or status 'Absent')
-  const staffAbsentCount = totalStaffCount - todayRecords.filter(r => r.status !== 'Absent').length;
+  // Total Staff Absent today (registered staff who have no check-in record or status 'Absent', unique count)
+  const nonAbsentEmails = new Set(
+    todayRecords
+      .filter(r => r.status !== 'Absent')
+      .map(r => r.email.toLowerCase())
+  );
+  const staffAbsentCount = Math.max(0, totalStaffCount - nonAbsentEmails.size);
 
-  // Staff Currently Inside (checked in, but not checked out)
-  const staffInsideCount = todayRecords.filter(r => r.checkInTime !== null && r.checkOutTime === null).length;
+  // Staff Currently Inside (checked in, but not checked out on their latest active session, unique count)
+  const insideEmails = new Set(
+    todayRecords
+      .filter(r => r.checkInTime !== null && r.checkOutTime === null)
+      .map(r => r.email.toLowerCase())
+  );
+  const staffInsideCount = insideEmails.size;
 
   // Total Visitors registered today
   const totalVisitorsToday = visitors.filter(v => v.checkInTime.startsWith(todayStr)).length;
