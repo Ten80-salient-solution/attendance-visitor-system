@@ -43,7 +43,7 @@ const getSeededAuditLogs = (): AuditLog[] => {
 // Database Initializer with Schema Migration
 export function initDB(): void {
   // Force reset local state to empty lists for the fresh start update
-  const freshFlag = localStorage.getItem('ten80_fresh_v2');
+  const freshFlag = localStorage.getItem('ten80_fresh_v3');
   if (!freshFlag) {
     localStorage.setItem(KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
     localStorage.setItem(KEYS.STAFF, JSON.stringify([]));
@@ -51,7 +51,7 @@ export function initDB(): void {
     localStorage.setItem(KEYS.VISITORS, JSON.stringify([]));
     localStorage.setItem(KEYS.AUDIT, JSON.stringify([]));
     localStorage.setItem(KEYS.DELETED_STAFF, JSON.stringify([]));
-    localStorage.setItem('ten80_fresh_v2', 'true');
+    localStorage.setItem('ten80_fresh_v3', 'true');
   }
 
   const existingSettings = localStorage.getItem(KEYS.SETTINGS);
@@ -229,10 +229,11 @@ interface SyncState {
   deletedStaff?: string[];
 }
 
-const BUCKET_URL = 'https://kvdb.io/LZPkZC8umVfWtLeKrt6zPk/ten80_db_v2';
+const BUCKET_URL = 'https://kvdb.io/A7k9Xm2Pq5Rt8Yv3Wb4Z6c1d/ten80_production_data';
 let isSyncing = false;
 
 export async function syncWithCloud(): Promise<void> {
+  initDB(); // Ensure DB reset and initialization is run first to avoid React lifecycle race conditions
   if (isSyncing) return;
   isSyncing = true;
   try {

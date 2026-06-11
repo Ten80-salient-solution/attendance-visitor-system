@@ -63,6 +63,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
   const [serverBaseUrl, setServerBaseUrl] = useState(() => localStorage.getItem('ten80_server_url') || window.location.origin);
 
   const [mapFocusId] = useState<string>('off-1');
+  const [mapsLoaded, setMapsLoaded] = useState(!!(window as any).google?.maps);
+
+  // Listen for dynamic Google Maps script load
+  useEffect(() => {
+    if ((window as any).google?.maps) return;
+    const handleLoaded = () => setMapsLoaded(true);
+    window.addEventListener('google_maps_loaded', handleLoaded);
+    return () => window.removeEventListener('google_maps_loaded', handleLoaded);
+  }, []);
 
   // Google Maps refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -301,7 +310,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
     return () => {
       mapInstanceRef.current = null;
     };
-  }, [activeTab, settings, attendance, visitors, mapFocusId, selectedCoordinates]);
+  }, [activeTab, settings, attendance, visitors, mapFocusId, selectedCoordinates, mapsLoaded]);
 
   // Handle Logout
   const handleLogoutClick = () => {
