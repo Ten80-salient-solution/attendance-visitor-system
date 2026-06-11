@@ -22,149 +22,38 @@ const DEFAULT_SETTINGS: OfficeSettings = {
 // Default Avatar (offline SVG inline URI)
 export const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%234f46e5'><circle cx='50' cy='35' r='20'/><path d='M10 85C10 65 28 55 50 55S90 65 90 85Z'/></svg>";
 
-// Default Staff
-const DEFAULT_STAFF: StaffMember[] = [
-  { id: 's1', name: 'Ekene Anyaegbu', phone: '+2348031112222', position: 'Lead Software Architect', profilePicture: DEFAULT_AVATAR, email: 'ekene@ten80.com', employeeId: 'EMP-001', department: 'Engineering', password: 'password123' },
-  { id: 's2', name: 'Jane Doe', phone: '+2348032223333', position: 'Operations Director', profilePicture: DEFAULT_AVATAR, email: 'jane@ten80.com', employeeId: 'EMP-002', department: 'Operations', password: 'password123' },
-  { id: 's3', name: 'Chidi Okafor', phone: '+2348033334444', position: 'Senior Product Manager', profilePicture: DEFAULT_AVATAR, email: 'chidi@ten80.com', employeeId: 'EMP-003', department: 'Product', password: 'password123' },
-  { id: 's4', name: 'Fatima Musa', phone: '+2348034445555', position: 'HR Operations Manager', profilePicture: DEFAULT_AVATAR, email: 'fatima@ten80.com', employeeId: 'EMP-004', department: 'Human Resources', password: 'password123' },
-  { id: 's5', name: 'Tunde Bakare', phone: '+2348035556666', position: 'Head of Finance', profilePicture: DEFAULT_AVATAR, email: 'tunde@ten80.com', employeeId: 'EMP-005', department: 'Finance', password: 'password123' },
-];
+// Default Staff (empty for fresh start)
+const DEFAULT_STAFF: StaffMember[] = [];
 
-// Seed Attendance Records for Today
+// Seed Attendance Records for Today (empty for fresh start)
 const getSeededAttendance = (): AttendanceRecord[] => {
-  const todayStr = new Date().toISOString().split('T')[0];
-  const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-  return [
-    {
-      id: 'a1',
-      staffName: 'Ekene Anyaegbu',
-      employeeId: 'EMP-001',
-      email: 'ekene@ten80.com',
-      department: 'Engineering',
-      checkInTime: `${todayStr}T08:15:22.000Z`,
-      checkOutTime: null,
-      date: todayStr,
-      gpsCoordinates: { latitude: 6.52442, longitude: 3.37921 },
-      deviceInfo: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-      status: 'Present (Lagos Head Office)',
-    },
-    {
-      id: 'a2',
-      staffName: 'Jane Doe',
-      employeeId: 'EMP-002',
-      email: 'jane@ten80.com',
-      department: 'Operations',
-      checkInTime: `${todayStr}T08:52:10.000Z`,
-      checkOutTime: `${todayStr}T17:05:40.000Z`,
-      date: todayStr,
-      gpsCoordinates: { latitude: 6.52445, longitude: 3.37918 },
-      deviceInfo: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X)',
-      status: 'Present (Lagos Head Office)',
-    },
-    {
-      id: 'a3',
-      staffName: 'Chidi Okafor',
-      employeeId: 'EMP-003',
-      email: 'chidi@ten80.com',
-      department: 'Product',
-      checkInTime: `${yesterdayStr}T09:05:12.000Z`,
-      checkOutTime: `${yesterdayStr}T17:00:00.000Z`,
-      date: yesterdayStr,
-      gpsCoordinates: { latitude: 9.0768, longitude: 7.3989 },
-      deviceInfo: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-      status: 'Present (Abuja Branch Office)',
-    },
-    {
-      id: 'a4',
-      staffName: 'Chidi Okafor',
-      employeeId: 'EMP-003',
-      email: 'chidi@ten80.com',
-      department: 'Product',
-      checkInTime: null,
-      checkOutTime: null,
-      date: todayStr,
-      gpsCoordinates: null,
-      deviceInfo: '',
-      status: 'Absent',
-    },
-  ];
+  return [];
 };
 
-// Seed Visitors
+// Seed Visitors (empty for fresh start)
 const getSeededVisitors = (): VisitorRecord[] => {
-  const todayStr = new Date().toISOString().split('T')[0];
-
-  return [
-    {
-      id: 'v1',
-      visitorName: 'Alice Johnson',
-      phone: '+2348012345678',
-      email: 'alice@google.com',
-      company: 'Google',
-      reasonForVisit: 'Partnership Sync',
-      hostEmployee: 'Ekene Anyaegbu',
-      checkInTime: `${todayStr}T09:30:00.000Z`,
-      checkOutTime: null,
-      gpsCoordinates: { latitude: 6.52445, longitude: 3.37925 },
-      status: 'Inside',
-    },
-    {
-      id: 'v2',
-      visitorName: 'Bob Smith',
-      phone: '+2348098765432',
-      reasonForVisit: 'Equipment Delivery',
-      hostEmployee: 'Fatima Musa',
-      checkInTime: `${todayStr}T10:00:00.000Z`,
-      checkOutTime: `${todayStr}T10:45:00.000Z`,
-      gpsCoordinates: { latitude: 6.52439, longitude: 3.37919 },
-      status: 'Checked Out',
-    },
-  ];
+  return [];
 };
 
-// Seed Audit Logs
+// Seed Audit Logs (empty for fresh start)
 const getSeededAuditLogs = (): AuditLog[] => {
-  const todayStr = new Date().toISOString().split('T')[0];
-
-  return [
-    {
-      id: 'l1',
-      timestamp: `${todayStr}T08:00:00.000Z`,
-      actionType: 'SETTINGS_UPDATE',
-      userEmail: 'system@ten80.com',
-      details: 'System database initialized with default office location and settings.',
-    },
-    {
-      id: 'l2',
-      timestamp: `${todayStr}T08:15:22.000Z`,
-      actionType: 'CHECK_IN_SUCCESS',
-      userEmail: 'ekene@ten80.com',
-      details: 'Staff checked in successfully. Distance to office: 4.3 meters.',
-      gpsCoordinates: { latitude: 6.52442, longitude: 3.37921 },
-    },
-    {
-      id: 'l3',
-      timestamp: `${todayStr}T08:40:15.000Z`,
-      actionType: 'CHECK_IN_FAILED',
-      userEmail: 'tunde@ten80.com',
-      details: 'Staff check-in denied. Geofence violation. Distance: 5320 meters.',
-      gpsCoordinates: { latitude: 6.5684, longitude: 3.3211 },
-    },
-    {
-      id: 'l4',
-      timestamp: `${todayStr}T08:52:10.000Z`,
-      actionType: 'CHECK_IN_SUCCESS',
-      userEmail: 'jane@ten80.com',
-      details: 'Staff checked in successfully. Distance to office: 7.2 meters.',
-      gpsCoordinates: { latitude: 6.52445, longitude: 3.37918 },
-    },
-  ];
+  return [];
 };
 
 // Database Initializer with Schema Migration
 export function initDB(): void {
+  // Force reset local state to empty lists for the fresh start update
+  const freshFlag = localStorage.getItem('ten80_fresh_v1');
+  if (!freshFlag) {
+    localStorage.setItem(KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+    localStorage.setItem(KEYS.STAFF, JSON.stringify([]));
+    localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify([]));
+    localStorage.setItem(KEYS.VISITORS, JSON.stringify([]));
+    localStorage.setItem(KEYS.AUDIT, JSON.stringify([]));
+    localStorage.setItem(KEYS.DELETED_STAFF, JSON.stringify([]));
+    localStorage.setItem('ten80_fresh_v1', 'true');
+  }
+
   const existingSettings = localStorage.getItem(KEYS.SETTINGS);
   let needsReset = false;
   if (existingSettings) {
