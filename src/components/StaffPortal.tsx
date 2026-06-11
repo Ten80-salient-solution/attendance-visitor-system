@@ -692,14 +692,8 @@ export const StaffPortal: React.FC = () => {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Status Classification:</span>
-                <span style={{ fontWeight: '600' }}>{latestRecord.status}</span>
+                <span style={{ fontWeight: '600' }}>{latestRecord.checkOutTime ? 'Clocked Out' : 'Clocked In'}</span>
               </div>
-              {latestRecord.gpsCoordinates && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Coordinates:</span>
-                  <span>{latestRecord.gpsCoordinates.latitude.toFixed(5)}, {latestRecord.gpsCoordinates.longitude.toFixed(5)}</span>
-                </div>
-              )}
             </div>
           </div>
 

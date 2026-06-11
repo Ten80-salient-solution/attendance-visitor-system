@@ -1124,7 +1124,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
                               row.status.includes('Present') || row.status.includes('Checked Out') ? 'badge-success' : 
                               row.status.includes('Late') ? 'badge-warning' : 'badge-danger'
                             }`}>
-                              {row.status}
+                              {row.status.split(' (')[0]}
                             </span>
                           </td>
                         </tr>
