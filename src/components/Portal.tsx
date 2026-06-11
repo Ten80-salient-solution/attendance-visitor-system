@@ -14,9 +14,7 @@ interface PortalProps {
 
 export const Portal: React.FC<PortalProps> = ({ initialRole = 'none' }) => {
   const [role, setRole] = useState<'none' | 'visitor'>(initialRole === 'visitor' ? 'visitor' : 'none');
-  const [visitorAction, setVisitorAction] = useState<'none' | 'checkin' | 'checkout'>(
-    initialRole === 'visitor' ? 'checkin' : 'none'
-  );
+  const [visitorAction, setVisitorAction] = useState<'none' | 'checkin' | 'checkout'>('none');
   
   const [gpsCoords, setGpsCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
@@ -56,9 +54,7 @@ export const Portal: React.FC<PortalProps> = ({ initialRole = 'none' }) => {
   useEffect(() => {
     if (initialRole !== 'none') {
       setRole(initialRole);
-      if (initialRole === 'visitor') {
-        setVisitorAction('checkin');
-      }
+      setVisitorAction('none');
     }
   }, [initialRole]);
 

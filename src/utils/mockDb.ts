@@ -363,12 +363,13 @@ export async function syncWithCloud(): Promise<void> {
     localAttendance.forEach(r => {
       const existing = attendanceMap.get(r.id);
       if (existing) {
-        const mergedRecord = { ...existing, ...r };
-        if (existing.checkOutTime && !r.checkOutTime) {
-          mergedRecord.checkOutTime = existing.checkOutTime;
-          mergedRecord.status = existing.status;
+        if (r.checkOutTime && !existing.checkOutTime) {
+          attendanceMap.set(r.id, r);
+        } else if (existing.checkOutTime && !r.checkOutTime) {
+          attendanceMap.set(r.id, existing);
+        } else {
+          attendanceMap.set(r.id, { ...existing, ...r });
         }
-        attendanceMap.set(r.id, mergedRecord);
       } else {
         attendanceMap.set(r.id, r);
       }
@@ -381,12 +382,13 @@ export async function syncWithCloud(): Promise<void> {
     localVisitors.forEach(v => {
       const existing = visitorMap.get(v.id);
       if (existing) {
-        const mergedVisitor = { ...existing, ...v };
-        if (existing.checkOutTime && !v.checkOutTime) {
-          mergedVisitor.checkOutTime = existing.checkOutTime;
-          mergedVisitor.status = existing.status;
+        if (v.checkOutTime && !existing.checkOutTime) {
+          visitorMap.set(v.id, v);
+        } else if (existing.checkOutTime && !v.checkOutTime) {
+          visitorMap.set(v.id, existing);
+        } else {
+          visitorMap.set(v.id, { ...existing, ...v });
         }
-        visitorMap.set(v.id, mergedVisitor);
       } else {
         visitorMap.set(v.id, v);
       }

@@ -95,7 +95,16 @@ export const StaffPortal: React.FC = () => {
       });
       streamRef.current = stream;
     } catch (err: any) {
-      console.warn("Camera access denied or unavailable: ", err.message);
+      console.warn("Camera with environment facing mode failed, falling back to general video: ", err.message);
+      try {
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({
+          video: true
+        });
+        streamRef.current = fallbackStream;
+      } catch (fallbackErr: any) {
+        console.error("All camera access failed: ", fallbackErr.message);
+        setErrorMessage("Camera access is blocked or unavailable on this device. Please check browser permissions.");
+      }
     }
   };
 
@@ -138,6 +147,8 @@ export const StaffPortal: React.FC = () => {
     if (cameraActive && videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current;
       videoRef.current.setAttribute('playsinline', 'true');
+      videoRef.current.setAttribute('muted', 'true');
+      videoRef.current.muted = true;
       videoRef.current.play().catch(err => console.warn("Video play failed:", err));
       startScanningLoop();
     }
@@ -624,6 +635,7 @@ export const StaffPortal: React.FC = () => {
                 ref={videoRef} 
                 autoPlay 
                 playsInline 
+                muted
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
