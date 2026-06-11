@@ -7,6 +7,7 @@ const KEYS = {
   ATTENDANCE: 'ten80_attendance',
   VISITORS: 'ten80_visitors',
   AUDIT: 'ten80_audit_logs',
+  DELETED_STAFF: 'ten80_deleted_staff',
 };
 
 // Default Settings: Lagos and Abuja offices
@@ -246,6 +247,11 @@ export function saveSettings(settings: OfficeSettings): void {
 }
 
 // Staff Directory Get/Set/Add/Remove
+export function getDeletedStaff(): string[] {
+  const deleted = localStorage.getItem(KEYS.DELETED_STAFF);
+  return deleted ? JSON.parse(deleted) : [];
+}
+
 export function getStaff(): StaffMember[] {
   initDB();
   return JSON.parse(localStorage.getItem(KEYS.STAFF)!);
@@ -255,17 +261,33 @@ export function addStaff(member: StaffMember): void {
   const staff = getStaff();
   staff.push(member);
   localStorage.setItem(KEYS.STAFF, JSON.stringify(staff));
+  
+  const deleted = getDeletedStaff().filter(id => id !== member.id);
+  localStorage.setItem(KEYS.DELETED_STAFF, JSON.stringify(deleted));
+  
   setTimeout(syncWithCloud, 0);
 }
 
 export function saveStaff(staffList: StaffMember[]): void {
   localStorage.setItem(KEYS.STAFF, JSON.stringify(staffList));
+  
+  const activeIds = new Set(staffList.map(s => s.id));
+  const deleted = getDeletedStaff().filter(id => !activeIds.has(id));
+  localStorage.setItem(KEYS.DELETED_STAFF, JSON.stringify(deleted));
+  
   setTimeout(syncWithCloud, 0);
 }
 
 export function removeStaff(id: string): void {
   const staff = getStaff().filter(s => s.id !== id);
   localStorage.setItem(KEYS.STAFF, JSON.stringify(staff));
+  
+  const deleted = getDeletedStaff();
+  if (!deleted.includes(id)) {
+    deleted.push(id);
+    localStorage.setItem(KEYS.DELETED_STAFF, JSON.stringify(deleted));
+  }
+  
   setTimeout(syncWithCloud, 0);
 }
 
@@ -315,6 +337,7 @@ interface SyncState {
   attendance?: AttendanceRecord[];
   visitors?: VisitorRecord[];
   audit?: AuditLog[];
+  deletedStaff?: string[];
 }
 
 const BUCKET_URL = 'https://kvdb.io/LZPkZC8umVfWtLeKrt6zPk/ten80_db';
@@ -340,19 +363,32 @@ export async function syncWithCloud(): Promise<void> {
     const localAttendance = JSON.parse(localStorage.getItem(KEYS.ATTENDANCE) || '[]') as AttendanceRecord[];
     const localVisitors = JSON.parse(localStorage.getItem(KEYS.VISITORS) || '[]') as VisitorRecord[];
     const localAudit = JSON.parse(localStorage.getItem(KEYS.AUDIT) || '[]') as AuditLog[];
+    const localDeletedStaff = getDeletedStaff();
 
     // 3. Merge Settings
     const mergedSettings = cloudData.settings ? { ...cloudData.settings, ...localSettings } : localSettings;
 
-    // 4. Merge Staff
+    // Merge Deleted Staff lists
+    const mergedDeletedStaff = Array.from(new Set([
+      ...(cloudData.deletedStaff || []),
+      ...localDeletedStaff
+    ]));
+
+    // 4. Merge Staff (filtering out deleted staff members)
     const staffMap = new Map<string, StaffMember>();
-    (cloudData.staff || []).forEach(s => staffMap.set(s.id, s));
-    localStaff.forEach(s => {
-      const existing = staffMap.get(s.id);
-      if (existing) {
-        staffMap.set(s.id, { ...existing, ...s });
-      } else {
+    (cloudData.staff || []).forEach(s => {
+      if (!mergedDeletedStaff.includes(s.id)) {
         staffMap.set(s.id, s);
+      }
+    });
+    localStaff.forEach(s => {
+      if (!mergedDeletedStaff.includes(s.id)) {
+        const existing = staffMap.get(s.id);
+        if (existing) {
+          staffMap.set(s.id, { ...existing, ...s });
+        } else {
+          staffMap.set(s.id, s);
+        }
       }
     });
     const mergedStaff = Array.from(staffMap.values());
@@ -374,7 +410,14 @@ export async function syncWithCloud(): Promise<void> {
         attendanceMap.set(r.id, r);
       }
     });
-    const mergedAttendance = Array.from(attendanceMap.values());
+
+    // Enforce 1-year attendance retention policy
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const mergedAttendance = Array.from(attendanceMap.values()).filter(r => {
+      if (!r.date) return true;
+      return new Date(r.date) >= oneYearAgo;
+    });
 
     // 6. Merge Visitors
     const visitorMap = new Map<string, VisitorRecord>();
@@ -409,19 +452,22 @@ export async function syncWithCloud(): Promise<void> {
     const prevAttendanceStr = localStorage.getItem(KEYS.ATTENDANCE);
     const prevVisitorsStr = localStorage.getItem(KEYS.VISITORS);
     const prevAuditStr = localStorage.getItem(KEYS.AUDIT);
+    const prevDeletedStaffStr = localStorage.getItem(KEYS.DELETED_STAFF);
 
     const nextSettingsStr = JSON.stringify(mergedSettings);
     const nextStaffStr = JSON.stringify(mergedStaff);
     const nextAttendanceStr = JSON.stringify(mergedAttendance);
     const nextVisitorsStr = JSON.stringify(mergedVisitors);
     const nextAuditStr = JSON.stringify(mergedAudit);
+    const nextDeletedStaffStr = JSON.stringify(mergedDeletedStaff);
 
     const dataChanged = 
       prevSettingsStr !== nextSettingsStr ||
       prevStaffStr !== nextStaffStr ||
       prevAttendanceStr !== nextAttendanceStr ||
       prevVisitorsStr !== nextVisitorsStr ||
-      prevAuditStr !== nextAuditStr;
+      prevAuditStr !== nextAuditStr ||
+      prevDeletedStaffStr !== nextDeletedStaffStr;
 
     if (dataChanged) {
       localStorage.setItem(KEYS.SETTINGS, nextSettingsStr);
@@ -429,6 +475,7 @@ export async function syncWithCloud(): Promise<void> {
       localStorage.setItem(KEYS.ATTENDANCE, nextAttendanceStr);
       localStorage.setItem(KEYS.VISITORS, nextVisitorsStr);
       localStorage.setItem(KEYS.AUDIT, nextAuditStr);
+      localStorage.setItem(KEYS.DELETED_STAFF, nextDeletedStaffStr);
       
       window.dispatchEvent(new CustomEvent('ten80_db_sync'));
     }
@@ -439,7 +486,8 @@ export async function syncWithCloud(): Promise<void> {
       staff: mergedStaff,
       attendance: mergedAttendance,
       visitors: mergedVisitors,
-      audit: mergedAudit
+      audit: mergedAudit,
+      deletedStaff: mergedDeletedStaff
     };
 
     await fetch(BUCKET_URL, {
