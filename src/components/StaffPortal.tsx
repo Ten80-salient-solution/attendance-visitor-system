@@ -55,9 +55,9 @@ export const StaffPortal: React.FC = () => {
   const [latestRecord, setLatestRecord] = useState<AttendanceRecord | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
 
-  // Camera stream ref
+  // Camera stream state & refs
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const scanFrameIdRef = useRef<number | null>(null);
 
   const officeSettings = getSettings();
@@ -93,14 +93,14 @@ export const StaffPortal: React.FC = () => {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' }
       });
-      streamRef.current = stream;
+      setCameraStream(stream);
     } catch (err: any) {
       console.warn("Camera with environment facing mode failed, falling back to general video: ", err.message);
       try {
         const fallbackStream = await navigator.mediaDevices.getUserMedia({
           video: true
         });
-        streamRef.current = fallbackStream;
+        setCameraStream(fallbackStream);
       } catch (fallbackErr: any) {
         console.error("All camera access failed: ", fallbackErr.message);
         setErrorMessage("Camera access is blocked or unavailable on this device. Please check browser permissions.");
@@ -144,8 +144,8 @@ export const StaffPortal: React.FC = () => {
   };
 
   useEffect(() => {
-    if (cameraActive && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
+    if (cameraActive && videoRef.current && cameraStream) {
+      videoRef.current.srcObject = cameraStream;
       videoRef.current.setAttribute('playsinline', 'true');
       videoRef.current.setAttribute('muted', 'true');
       videoRef.current.muted = true;
@@ -158,16 +158,19 @@ export const StaffPortal: React.FC = () => {
         scanFrameIdRef.current = null;
       }
     };
-  }, [cameraActive, videoRef.current, streamRef.current]);
+  }, [cameraActive, videoRef.current, cameraStream]);
 
   const stopCamera = () => {
     if (scanFrameIdRef.current) {
       cancelAnimationFrame(scanFrameIdRef.current);
       scanFrameIdRef.current = null;
     }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
     setCameraActive(false);
   };

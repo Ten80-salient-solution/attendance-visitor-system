@@ -1323,7 +1323,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
                         <th>Name</th>
                         <th>ID</th>
                         <th>Position</th>
-                        <th>Department</th>
                         <th>Phone</th>
                         <th>Company Email</th>
                         <th style={{ textAlign: 'center' }}>Actions</th>
@@ -1345,9 +1344,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
                             <td style={{ fontWeight: 600 }}>{s.name}</td>
                             <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{s.employeeId}</td>
                             <td style={{ fontSize: '0.85rem' }}>{s.position}</td>
-                            <td>
-                              <span className="badge badge-info" style={{ fontSize: '0.75rem' }}>{s.department}</span>
-                            </td>
                             <td style={{ fontSize: '0.85rem' }}>{s.phone}</td>
                             <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{s.email}</td>
                             <td>
@@ -1385,7 +1381,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                          <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                             No employees registered. Use the "Add Staff" button to register.
                           </td>
                         </tr>
