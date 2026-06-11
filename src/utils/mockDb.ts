@@ -43,7 +43,7 @@ const getSeededAuditLogs = (): AuditLog[] => {
 // Database Initializer with Schema Migration
 export function initDB(): void {
   // Force reset local state to empty lists for the fresh start update
-  const freshFlag = localStorage.getItem('ten80_fresh_v1');
+  const freshFlag = localStorage.getItem('ten80_fresh_v2');
   if (!freshFlag) {
     localStorage.setItem(KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
     localStorage.setItem(KEYS.STAFF, JSON.stringify([]));
@@ -51,7 +51,7 @@ export function initDB(): void {
     localStorage.setItem(KEYS.VISITORS, JSON.stringify([]));
     localStorage.setItem(KEYS.AUDIT, JSON.stringify([]));
     localStorage.setItem(KEYS.DELETED_STAFF, JSON.stringify([]));
-    localStorage.setItem('ten80_fresh_v1', 'true');
+    localStorage.setItem('ten80_fresh_v2', 'true');
   }
 
   const existingSettings = localStorage.getItem(KEYS.SETTINGS);
@@ -229,7 +229,7 @@ interface SyncState {
   deletedStaff?: string[];
 }
 
-const BUCKET_URL = 'https://kvdb.io/LZPkZC8umVfWtLeKrt6zPk/ten80_db';
+const BUCKET_URL = 'https://kvdb.io/LZPkZC8umVfWtLeKrt6zPk/ten80_db_v2';
 let isSyncing = false;
 
 export async function syncWithCloud(): Promise<void> {
