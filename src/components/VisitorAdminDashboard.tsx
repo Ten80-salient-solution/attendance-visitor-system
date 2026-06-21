@@ -440,40 +440,40 @@ export const VisitorAdminDashboard: React.FC<VisitorAdminDashboardProps> = ({ ad
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="animated-fadeIn">
-            {/* Quick Metrics grid */}
-            <div className="metrics-grid">
+            {/* Quick Stats Grid */}
+            <div className="stats-grid">
               
-              <div className="metric-card glass-panel" style={{ borderLeft: '4px solid var(--accent-purple)' }}>
-                <div className="metric-header">
-                  <span>Registered Visitors</span>
-                  <div style={{ padding: '0.35rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(168, 85, 247, 0.1)', color: 'var(--accent-purple)' }}>
-                    <Users size={18} />
-                  </div>
+              <div className="stat-card glass-panel">
+                <div className="stat-info">
+                  <h5>Registered Visitors</h5>
+                  <div className="stat-value">{totalVisitors}</div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>All-time registrations</span>
                 </div>
-                <h3>{totalVisitors}</h3>
-                <span className="trend positive">All-Time Registrations</span>
+                <div className="stat-icon" style={{ backgroundColor: 'rgba(168, 85, 247, 0.1)', color: 'var(--accent-purple)' }}>
+                  <Users size={24} />
+                </div>
               </div>
 
-              <div className="metric-card glass-panel" style={{ borderLeft: '4px solid var(--accent-pink)' }}>
-                <div className="metric-header">
-                  <span>Currently Inside</span>
-                  <div style={{ padding: '0.35rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(236, 72, 153, 0.1)', color: 'var(--accent-pink)' }}>
-                    <Clock size={18} />
-                  </div>
+              <div className="stat-card glass-panel">
+                <div className="stat-info">
+                  <h5>Currently Inside</h5>
+                  <div className="stat-value">{visitorsInside}</div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Awaiting departure check</span>
                 </div>
-                <h3>{visitorsInside}</h3>
-                <span className="trend positive">Awaiting Departure Check</span>
+                <div className="stat-icon" style={{ backgroundColor: 'rgba(236, 72, 153, 0.1)', color: 'var(--accent-pink)' }}>
+                  <Clock size={24} />
+                </div>
               </div>
 
-              <div className="metric-card glass-panel" style={{ borderLeft: '4px solid var(--accent-green)' }}>
-                <div className="metric-header">
-                  <span>Checked Out</span>
-                  <div style={{ padding: '0.35rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-green)' }}>
-                    <ShieldCheck size={18} />
-                  </div>
+              <div className="stat-card glass-panel">
+                <div className="stat-info">
+                  <h5>Checked Out</h5>
+                  <div className="stat-value">{visitorsCheckedOut}</div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Signed out safely</span>
                 </div>
-                <h3>{visitorsCheckedOut}</h3>
-                <span className="trend positive">Signed Out Safely</span>
+                <div className="stat-icon" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' }}>
+                  <ShieldCheck size={24} />
+                </div>
               </div>
 
             </div>
