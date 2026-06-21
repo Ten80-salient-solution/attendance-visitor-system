@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Sun, Moon, ShieldAlert, User, ShieldCheck } from 'lucide-react';
+import { Sun, Moon, ShieldAlert, User, ShieldCheck, Users } from 'lucide-react';
 import { Portal } from './components/Portal';
 import { StaffPortal } from './components/StaffPortal';
 import { AdminLogin } from './components/AdminLogin';
 import { AdminDashboard } from './components/AdminDashboard';
+import { VisitorAdminLogin } from './components/VisitorAdminLogin';
+import { VisitorAdminDashboard } from './components/VisitorAdminDashboard';
 import { initDB } from './utils/mockDb';
 
 import 'leaflet/dist/leaflet.css';
 
 function App() {
-  // View states: 'portal' (visitor & landing) | 'staff-portal' | 'admin-login' | 'admin-dashboard'
-  const [view, setView] = useState<'portal' | 'staff-portal' | 'admin-login' | 'admin-dashboard'>('staff-portal');
+  // View states: 'portal' | 'staff-portal' | 'admin-login' | 'admin-dashboard' | 'visitor-admin-login' | 'visitor-admin-dashboard'
+  const [view, setView] = useState<'portal' | 'staff-portal' | 'admin-login' | 'admin-dashboard' | 'visitor-admin-login' | 'visitor-admin-dashboard'>('staff-portal');
   const [adminEmail, setAdminEmail] = useState<string | null>(null);
+  const [visitorAdminEmail, setVisitorAdminEmail] = useState<string | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark'); // Default to modern dark theme
   const [initialRole, setInitialRole] = useState<'none' | 'visitor'>('none');
 
@@ -27,6 +30,8 @@ function App() {
 
     if (viewParam === 'staff' || path.endsWith('/staff')) {
       setView('staff-portal');
+    } else if (viewParam === 'visitor-admin' || path.endsWith('/visitor-admin')) {
+      setView('visitor-admin-login');
     } else if (modeParam === 'visitor') {
       setInitialRole('visitor');
       setView('portal');
@@ -51,9 +56,24 @@ function App() {
     <div className="app-container">
       {/* Top Navigation Bar */}
       <header className="navbar">
-        <div className="brand" onClick={() => setView('staff-portal')} style={{ cursor: 'pointer' }}>
-          <div className="brand-icon">T8</div>
-          <span>Ten80 Salient Solutions</span>
+        <div className="brand" onClick={() => {
+          if (view === 'visitor-admin-login' || view === 'visitor-admin-dashboard') {
+            setView('visitor-admin-login');
+          } else {
+            setView('staff-portal');
+          }
+        }} style={{ cursor: 'pointer' }}>
+          {view === 'visitor-admin-login' || view === 'visitor-admin-dashboard' ? (
+            <>
+              <div className="brand-icon" style={{ backgroundColor: 'rgba(168, 85, 247, 0.15)', color: 'var(--accent-purple)' }}>MF</div>
+              <span>Multiforte Resources Limited</span>
+            </>
+          ) : (
+            <>
+              <div className="brand-icon">T8</div>
+              <span>Ten80 Salient Solutions</span>
+            </>
+          )}
         </div>
 
         <div className="nav-actions">
@@ -71,6 +91,15 @@ function App() {
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button 
                 type="button" 
+                onClick={() => setView('visitor-admin-login')} 
+                className="btn btn-secondary"
+                style={{ display: 'flex', gap: '0.4rem', border: '1px solid var(--border-color)', color: 'var(--accent-purple)' }}
+              >
+                <Users size={16} />
+                Visitor Admin
+              </button>
+              <button 
+                type="button" 
                 onClick={() => setView('admin-login')} 
                 className="btn btn-secondary"
                 style={{ display: 'flex', gap: '0.4rem', border: '1px solid var(--border-color)' }}
@@ -81,7 +110,7 @@ function App() {
             </div>
           )}
 
-          {view === 'admin-login' && (
+          {(view === 'admin-login' || view === 'visitor-admin-login') && (
             <button 
               type="button" 
               onClick={() => setView('staff-portal')} 
@@ -109,6 +138,23 @@ function App() {
               </button>
             </div>
           )}
+
+          {view === 'visitor-admin-dashboard' && visitorAdminEmail && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <ShieldAlert size={14} style={{ color: 'var(--accent-purple)' }} />
+                {visitorAdminEmail}
+              </span>
+              <button 
+                type="button" 
+                onClick={() => { setVisitorAdminEmail(null); setView('staff-portal'); }} 
+                className="btn btn-secondary"
+                style={{ fontSize: '0.875rem', padding: '0.4rem 0.8rem' }}
+              >
+                Clock Portal
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -128,6 +174,17 @@ function App() {
 
         {view === 'admin-dashboard' && adminEmail && (
           <AdminDashboard adminEmail={adminEmail} onLogout={() => { setAdminEmail(null); setView('staff-portal'); }} />
+        )}
+
+        {view === 'visitor-admin-login' && (
+          <VisitorAdminLogin 
+            onLoginSuccess={(email) => { setVisitorAdminEmail(email); setView('visitor-admin-dashboard'); }} 
+            onBackToClock={() => setView('staff-portal')}
+          />
+        )}
+
+        {view === 'visitor-admin-dashboard' && visitorAdminEmail && (
+          <VisitorAdminDashboard adminEmail={visitorAdminEmail} onLogout={() => { setVisitorAdminEmail(null); setView('staff-portal'); }} />
         )}
       </div>
     </div>
