@@ -34,7 +34,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     const storedPassword = localStorage.getItem('ten80_admin_password') || 'admin123';
 
     // Secure authentication check (mock backend credential storage)
-    if (emailClean === 'admin@ten80salientsolution.com' && password === storedPassword) {
+    if ((emailClean === 'admin@ten80salientsolution.com' || emailClean === 'admin@ten80salientsolutions.com') && password === storedPassword) {
       // Log successful login
       addAuditLog({
         timestamp: new Date().toISOString(),
