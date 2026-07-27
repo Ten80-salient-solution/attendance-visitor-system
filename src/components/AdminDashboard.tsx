@@ -54,6 +54,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
   const [newStaffPhoto, setNewStaffPhoto] = useState('');
   const [rosterError, setRosterError] = useState<string | null>(null);
 
+  // Custom database sync url state
+  const [customSyncUrl, setCustomSyncUrl] = useState(() => localStorage.getItem('ten80_custom_sync_url') || '');
+
+  const handleSaveSyncUrl = () => {
+    const trimmed = customSyncUrl.trim();
+    if (trimmed) {
+      localStorage.setItem('ten80_custom_sync_url', trimmed);
+    } else {
+      localStorage.removeItem('ten80_custom_sync_url');
+    }
+    alert('Database synchronization URL updated successfully! Starting sync process...');
+    syncWithCloud();
+  };
+
   // Focus and action states
   const [selectedCoordinates, setSelectedCoordinates] = useState<{ latitude: number; longitude: number; label: string } | null>(null);
   const [resetPasswordStaff, setResetPasswordStaff] = useState<StaffMember | null>(null);
@@ -1692,6 +1706,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
                 </div>
               );
             })()}
+
+            {/* Database Synchronization Configuration */}
+            <div className="table-card glass-panel" style={{ marginTop: '2rem' }}>
+              <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                <h3>Database Synchronization Config</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  Configure your private self-hosted cPanel database server sync URL.
+                </p>
+              </div>
+
+              <div className="form-group" style={{ maxWidth: '600px', margin: 0 }}>
+                <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 600 }}>Database Sync API URL</label>
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. https://yourdomain.com/api/sync.php"
+                    value={customSyncUrl}
+                    onChange={(e) => setCustomSyncUrl(e.target.value)}
+                    style={{ flexGrow: 1, fontSize: '0.85rem', padding: '0.55rem' }}
+                  />
+                  <button 
+                    onClick={handleSaveSyncUrl}
+                    className="btn btn-primary"
+                    style={{ fontSize: '0.85rem', padding: '0.55rem 1rem', whiteSpace: 'nowrap' }}
+                  >
+                    Save & Test Sync
+                  </button>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                  Default backup cloud database URL: <code>https://kvdb.io/VDfaCAzvRSMjSnMzsqg74G/ten80_production_data</code>
+                </div>
+              </div>
+            </div>
 
           </div>
         )}

@@ -229,14 +229,21 @@ interface SyncState {
   deletedStaff?: string[];
 }
 
-const BUCKET_URL = 'https://kvdb.io/VDfaCAzvRSMjSnMzsqg74G/ten80_production_data';
+const getSyncUrl = (): string => {
+  return localStorage.getItem('ten80_custom_sync_url') || 
+         (import.meta.env.VITE_API_URL as string) || 
+         'https://kvdb.io/VDfaCAzvRSMjSnMzsqg74G/ten80_production_data';
+};
+
 let isSyncing = false;
 
+// Cross-device online synchronization layer
 export async function syncWithCloud(): Promise<void> {
   initDB(); // Ensure DB reset and initialization is run first to avoid React lifecycle race conditions
   if (isSyncing) return;
   isSyncing = true;
   try {
+    const BUCKET_URL = getSyncUrl();
     // 1. Fetch current cloud state
     const response = await fetch(BUCKET_URL);
     let cloudData: SyncState = {};
@@ -380,8 +387,9 @@ export async function syncWithCloud(): Promise<void> {
       deletedStaff: mergedDeletedStaff
     };
 
+    const isCustomServer = BUCKET_URL.indexOf('kvdb.io') === -1;
     await fetch(BUCKET_URL, {
-      method: 'PUT',
+      method: isCustomServer ? 'POST' : 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newCloudData)
     });
