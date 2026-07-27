@@ -180,16 +180,18 @@ export const StaffPortal: React.FC = () => {
     e.preventDefault();
     setErrorMessage(null);
 
-    const nameInput = staffName.trim();
+    const nameInput = staffName.trim().toLowerCase();
     const passwordInput = staffPassword;
 
-    // Find staff member matching exact name
+    // Find staff member matching name, email, or employee ID
     const staffMember = staffList.find(
-      s => s.name.toLowerCase() === nameInput.toLowerCase()
+      s => s.name.toLowerCase() === nameInput ||
+           s.email.toLowerCase() === nameInput ||
+           s.employeeId.toLowerCase() === nameInput
     );
 
     if (!staffMember || staffMember.password !== passwordInput) {
-      setErrorMessage('Invalid Staff Name or Password.');
+      setErrorMessage('Invalid Staff credentials or password.');
       addAuditLog({
         timestamp: new Date().toISOString(),
         actionType: 'LOGIN_FAILURE',
@@ -537,7 +539,7 @@ export const StaffPortal: React.FC = () => {
           )}
 
           <div className="form-group">
-            <label className="form-label" htmlFor="staff-name-input">Full Name</label>
+            <label className="form-label" htmlFor="staff-name-input">Full Name, Email, or Employee ID</label>
             <div style={{ position: 'relative' }}>
               <User size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
@@ -545,7 +547,7 @@ export const StaffPortal: React.FC = () => {
                 type="text"
                 required
                 className="form-input"
-                placeholder=""
+                placeholder="e.g. John Doe, john@ten80.com, or EMP-001"
                 style={{ paddingLeft: '2.5rem' }}
                 value={staffName}
                 onChange={(e) => setStaffName(e.target.value)}
