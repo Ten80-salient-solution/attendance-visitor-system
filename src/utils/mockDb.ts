@@ -232,7 +232,7 @@ interface SyncState {
 const getSyncUrl = (): string => {
   return localStorage.getItem('ten80_custom_sync_url') || 
          (import.meta.env.VITE_API_URL as string) || 
-         'https://kvdb.io/VDfaCAzvRSMjSnMzsqg74G/ten80_production_data';
+         'https://multiforteresources.com/api/sync.php';
 };
 
 let isSyncing = false;
