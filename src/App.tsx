@@ -30,6 +30,8 @@ function App() {
 
     if (viewParam === 'staff' || path.endsWith('/staff')) {
       setView('staff-portal');
+    } else if (viewParam === 'admin' || path.endsWith('/admin')) {
+      setView('admin-login');
     } else if (viewParam === 'visitor-admin' || path.endsWith('/visitor-admin')) {
       setView('visitor-admin-login');
     } else if (modeParam === 'visitor') {
