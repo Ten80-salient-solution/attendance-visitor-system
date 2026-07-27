@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Mail, Lock, AlertTriangle, Eye, EyeOff, ArrowLeft, Check, Key } from 'lucide-react';
-import { addAuditLog } from '../utils/mockDb';
+import { addAuditLog, syncWithCloud } from '../utils/mockDb';
 
 interface AdminLoginProps {
   onLoginSuccess: (email: string) => void;
 }
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
+  useEffect(() => {
+    syncWithCloud();
+  }, []);
+
   const [view, setView] = useState<'login' | 'forgot' | 'reset'>('login');
   
   // Login State

@@ -30,10 +30,26 @@ if ($method === 'POST' || $method === 'PUT') {
             if (isset($input['settings']) && is_array($input['settings'])) {
                 $settings = $input['settings'];
                 
-                // Update staff QR token
+                // Update settings fields
+                $set_clauses = [];
+                $params = [];
                 if (isset($settings['staffQRToken'])) {
-                    $stmt = $pdo->prepare("UPDATE `office_settings` SET `staff_qr_token` = ? WHERE `id` = 1");
-                    $stmt->execute([$settings['staffQRToken']]);
+                    $set_clauses[] = "`staff_qr_token` = ?";
+                    $params[] = $settings['staffQRToken'];
+                }
+                if (isset($settings['adminPassword'])) {
+                    $set_clauses[] = "`admin_password` = ?";
+                    $params[] = $settings['adminPassword'];
+                }
+                if (isset($settings['visitorAdminPassword'])) {
+                    $set_clauses[] = "`visitor_admin_password` = ?";
+                    $params[] = $settings['visitorAdminPassword'];
+                }
+                
+                if (!empty($set_clauses)) {
+                    $sql = "UPDATE `office_settings` SET " . implode(", ", $set_clauses) . " WHERE `id` = 1";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute($params);
                 }
 
                 // Update Offices
@@ -167,10 +183,14 @@ if ($method === 'POST' || $method === 'PUT') {
 // 2. Fetch Complete State
 try {
     // 2.1 Fetch Settings
-    $settings_stmt = $pdo->query("SELECT `staff_qr_token` AS `staffQRToken` FROM `office_settings` WHERE `id` = 1");
+    $settings_stmt = $pdo->query("SELECT `staff_qr_token` AS `staffQRToken`, `admin_password` AS `adminPassword`, `visitor_admin_password` AS `visitorAdminPassword` FROM `office_settings` WHERE `id` = 1");
     $settings = $settings_stmt->fetch();
     if (!$settings) {
-        $settings = ['staffQRToken' => 'TEN80_STAFF_TOKEN_2026'];
+        $settings = [
+            'staffQRToken' => 'TEN80_STAFF_TOKEN_2026',
+            'adminPassword' => 'admin123',
+            'visitorAdminPassword' => 'visitor123'
+        ];
     }
 
     // Fetch Offices

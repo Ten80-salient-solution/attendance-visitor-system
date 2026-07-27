@@ -80,4 +80,6 @@ export interface OfficeLocation {
 export interface OfficeSettings {
   offices: OfficeLocation[];
   staffQRToken: string;
+  adminPassword?: string;
+  visitorAdminPassword?: string;
 }

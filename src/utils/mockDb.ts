@@ -256,6 +256,9 @@ export async function syncWithCloud(): Promise<void> {
 
     // 2. Read local state
     const localSettings = JSON.parse(localStorage.getItem(KEYS.SETTINGS) || 'null') || getSettings();
+    localSettings.adminPassword = localStorage.getItem('ten80_admin_password') || 'admin123';
+    localSettings.visitorAdminPassword = localStorage.getItem('multiforte_admin_password') || 'visitor123';
+
     const localStaff = JSON.parse(localStorage.getItem(KEYS.STAFF) || '[]') as StaffMember[];
     const localAttendance = JSON.parse(localStorage.getItem(KEYS.ATTENDANCE) || '[]') as AttendanceRecord[];
     const localVisitors = JSON.parse(localStorage.getItem(KEYS.VISITORS) || '[]') as VisitorRecord[];
@@ -264,6 +267,16 @@ export async function syncWithCloud(): Promise<void> {
 
     // 3. Merge Settings
     const mergedSettings = cloudData.settings ? { ...cloudData.settings, ...localSettings } : localSettings;
+    
+    // Apply cloud passwords back to localStorage if available to persist across sessions/incognito
+    if (cloudData.settings?.adminPassword) {
+      localStorage.setItem('ten80_admin_password', cloudData.settings.adminPassword);
+      mergedSettings.adminPassword = cloudData.settings.adminPassword;
+    }
+    if (cloudData.settings?.visitorAdminPassword) {
+      localStorage.setItem('multiforte_admin_password', cloudData.settings.visitorAdminPassword);
+      mergedSettings.visitorAdminPassword = cloudData.settings.visitorAdminPassword;
+    }
 
     // Merge Deleted Staff lists
     const mergedDeletedStaff = Array.from(new Set([
