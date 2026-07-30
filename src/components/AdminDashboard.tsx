@@ -3,7 +3,7 @@ import {
   LayoutDashboard, UserCheck, Users, MapPin, Sliders, 
   ClipboardList, QrCode, LogOut, Search, FileDown, 
   Plus, Trash2, Calendar, Filter, Clock, UserMinus, ShieldAlert, Info, Key,
-  PieChart
+  PieChart, Briefcase
 } from 'lucide-react';
 import { 
   getSettings, getStaff, addStaff, removeStaff, saveStaff,
@@ -42,6 +42,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
 
   const [auditSearch, setAuditSearch] = useState('');
   const [auditAction, setAuditAction] = useState('');
+  const [auditStartDate, setAuditStartDate] = useState('');
+  const [auditEndDate, setAuditEndDate] = useState('');
 
   // Roster Modals
   const [showRosterModal, setShowRosterModal] = useState(false);
@@ -432,7 +434,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
       log.userEmail.toLowerCase().includes(auditSearch.toLowerCase()) ||
       log.details.toLowerCase().includes(auditSearch.toLowerCase());
     const matchesAction = auditAction === '' || log.actionType === auditAction;
-    return matchesSearch && matchesAction;
+    
+    let matchesDate = true;
+    const logDate = log.timestamp.split('T')[0];
+    if (auditStartDate) {
+      matchesDate = matchesDate && logDate >= auditStartDate;
+    }
+    if (auditEndDate) {
+      matchesDate = matchesDate && logDate <= auditEndDate;
+    }
+    
+    return matchesSearch && matchesAction && matchesDate;
   });
 
   // ----------------------------------------------------
@@ -946,7 +958,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
                 </div>
               </div>
 
-
+              <div className="stat-card glass-panel">
+                <div className="stat-info">
+                  <h5>Total Registered Employees</h5>
+                  <div className="stat-value">{totalStaffCount}</div>
+                </div>
+                <div className="stat-icon" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'var(--info)' }}>
+                  <Briefcase size={24} />
+                </div>
+              </div>
             </div>
 
             {/* Quick overview grids */}
@@ -1792,6 +1812,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
                   <option value="STAFF_ADDED">Roster Added</option>
                   <option value="STAFF_REMOVED">Roster Removed</option>
                 </select>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                  <Calendar size={14} />
+                  <input
+                    type="date"
+                    className="form-input"
+                    style={{ padding: '0.3rem', fontSize: '0.8rem', width: 'auto' }}
+                    value={auditStartDate}
+                    onChange={(e) => setAuditStartDate(e.target.value)}
+                  />
+                  <span>to</span>
+                  <input
+                    type="date"
+                    className="form-input"
+                    style={{ padding: '0.3rem', fontSize: '0.8rem', width: 'auto' }}
+                    value={auditEndDate}
+                    onChange={(e) => setAuditEndDate(e.target.value)}
+                  />
+                </div>
               </div>
 
               {/* Audit Table */}

@@ -290,7 +290,7 @@ export const StaffPortal: React.FC = () => {
       },
       (error) => {
         setGpsLoading(false);
-        setErrorMessage(`GPS Location permission is mandatory to check in. Reason: ${error.message}`);
+        setErrorMessage("GPS Location coordinates are compulsory for authentication. Please authorize location permissions on your device browser and try again.");
         
         // Audit log permission deny
         if (authenticatedStaff) {
@@ -595,8 +595,21 @@ export const StaffPortal: React.FC = () => {
           </p>
 
           {errorMessage && (
-            <div className="badge badge-danger" style={{ width: '100%', padding: '0.75rem', display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderRadius: 'var(--radius-md)', textAlign: 'left' }}>
-              <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+            <div 
+              style={{ 
+                width: '100%', 
+                padding: '0.75rem', 
+                display: 'flex', 
+                gap: '0.5rem', 
+                marginBottom: '1.25rem', 
+                borderRadius: 'var(--radius-md)', 
+                textAlign: 'left',
+                backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                border: '1px solid rgb(245, 158, 11)',
+                color: 'rgb(217, 119, 6)'
+              }}
+            >
+              <AlertTriangle size={18} style={{ flexShrink: 0, color: 'rgb(245, 158, 11)' }} />
               <span style={{ fontSize: '0.8rem', lineHeight: 1.3 }}>{errorMessage}</span>
             </div>
           )}
