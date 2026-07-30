@@ -230,9 +230,17 @@ interface SyncState {
 }
 
 const getSyncUrl = (): string => {
-  return localStorage.getItem('ten80_custom_sync_url') || 
-         (import.meta.env.VITE_API_URL as string) || 
-         'https://api.multiforteresources.com/sync.php';
+  const custom = localStorage.getItem('ten80_custom_sync_url');
+  // Self-healing check: clean up legacy URLs
+  if (
+    custom === 'https://multiforteresources.com/api/sync.php' ||
+    custom === 'https://mail.multiforteresources.com/api/sync.php' ||
+    !custom
+  ) {
+    localStorage.removeItem('ten80_custom_sync_url');
+    return 'https://api.multiforteresources.com/sync.php';
+  }
+  return custom;
 };
 
 let isSyncing = false;
