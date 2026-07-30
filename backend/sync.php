@@ -17,6 +17,31 @@ function get_gps_coords($item) {
     return ['lat' => null, 'lng' => null];
 }
 
+// 0. Self-healing Database Migrations
+try {
+    // Migrate staff_members columns
+    $stmt = $pdo->query("SHOW COLUMNS FROM `staff_members` LIKE 'employee_id'");
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE `staff_members` ADD COLUMN `employee_id` varchar(100) DEFAULT NULL AFTER `email`");
+    }
+    $stmt = $pdo->query("SHOW COLUMNS FROM `staff_members` LIKE 'department'");
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE `staff_members` ADD COLUMN `department` varchar(100) DEFAULT NULL AFTER `employee_id`");
+    }
+
+    // Migrate office_settings columns
+    $stmt = $pdo->query("SHOW COLUMNS FROM `office_settings` LIKE 'admin_password'");
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE `office_settings` ADD COLUMN `admin_password` varchar(255) DEFAULT 'admin123'");
+    }
+    $stmt = $pdo->query("SHOW COLUMNS FROM `office_settings` LIKE 'visitor_admin_password'");
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE `office_settings` ADD COLUMN `visitor_admin_password` varchar(255) DEFAULT 'visitor123'");
+    }
+} catch (Exception $e) {
+    // Ignore migration errors
+}
+
 // 1. Process Updates (POST or PUT)
 if ($method === 'POST' || $method === 'PUT') {
     $raw_input = file_get_contents('php://input');
@@ -72,15 +97,17 @@ if ($method === 'POST' || $method === 'PUT') {
 
             // 1.2 Sync Staff
             if (isset($input['staff']) && is_array($input['staff'])) {
-                $stmt = $pdo->prepare("INSERT INTO `staff_members` (`id`, `name`, `email`, `phone`, `position`, `profile_picture`, `password`, `is_deleted`) 
-                    VALUES (:id, :name, :email, :phone, :pos, :pic, :pwd, 0) 
-                    ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `email` = VALUES(`email`), `phone` = VALUES(`phone`), `position` = VALUES(`position`), `profile_picture` = VALUES(`profile_picture`), `password` = VALUES(`password`), `is_deleted` = 0");
+                $stmt = $pdo->prepare("INSERT INTO `staff_members` (`id`, `name`, `email`, `employee_id`, `department`, `phone`, `position`, `profile_picture`, `password`, `is_deleted`) 
+                    VALUES (:id, :name, :email, :emp_id, :dept, :phone, :pos, :pic, :pwd, 0) 
+                    ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `email` = VALUES(`email`), `employee_id` = VALUES(`employee_id`), `department` = VALUES(`department`), `phone` = VALUES(`phone`), `position` = VALUES(`position`), `profile_picture` = VALUES(`profile_picture`), `password` = VALUES(`password`), `is_deleted` = 0");
                 
                 foreach ($input['staff'] as $member) {
                     $stmt->execute([
                         ':id' => $member['id'],
                         ':name' => $member['name'],
                         ':email' => $member['email'],
+                        ':emp_id' => isset($member['employeeId']) ? $member['employeeId'] : '',
+                        ':dept' => isset($member['department']) ? $member['department'] : '',
                         ':phone' => $member['phone'],
                         ':pos' => $member['position'],
                         ':pic' => isset($member['profilePicture']) ? $member['profilePicture'] : null,
@@ -205,7 +232,7 @@ try {
     $settings['offices'] = $offices;
 
     // 2.2 Fetch Staff
-    $staff_stmt = $pdo->query("SELECT `id`, `name`, `email`, `phone`, `position`, `profile_picture` AS `profilePicture`, `password` FROM `staff_members` WHERE `is_deleted` = 0");
+    $staff_stmt = $pdo->query("SELECT `id`, `name`, `email`, `phone`, `position`, `profile_picture` AS `profilePicture`, `password`, `employee_id` AS `employeeId`, `department` FROM `staff_members` WHERE `is_deleted` = 0");
     $staff = $staff_stmt->fetchAll();
 
     // 2.3 Fetch Deleted Staff IDs

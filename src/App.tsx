@@ -13,8 +13,8 @@ import 'leaflet/dist/leaflet.css';
 function App() {
   // View states: 'portal' | 'staff-portal' | 'admin-login' | 'admin-dashboard' | 'visitor-admin-login' | 'visitor-admin-dashboard'
   const [view, setView] = useState<'portal' | 'staff-portal' | 'admin-login' | 'admin-dashboard' | 'visitor-admin-login' | 'visitor-admin-dashboard'>('staff-portal');
-  const [adminEmail, setAdminEmail] = useState<string | null>(null);
-  const [visitorAdminEmail, setVisitorAdminEmail] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string | null>(() => localStorage.getItem('ten80_active_admin_email'));
+  const [visitorAdminEmail, setVisitorAdminEmail] = useState<string | null>(() => localStorage.getItem('ten80_active_visitor_admin_email'));
   const [theme, setTheme] = useState<'dark' | 'light'>('dark'); // Default to modern dark theme
   const [initialRole, setInitialRole] = useState<'none' | 'visitor'>('none');
 
@@ -22,13 +22,20 @@ function App() {
   useEffect(() => {
     initDB();
 
+    const storedAdmin = localStorage.getItem('ten80_active_admin_email');
+    const storedVisitorAdmin = localStorage.getItem('ten80_active_visitor_admin_email');
+
     // URL Query Routing Check
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('view');
     const modeParam = params.get('mode');
     const path = window.location.pathname;
 
-    if (viewParam === 'staff' || path.endsWith('/staff')) {
+    if (storedAdmin) {
+      setView('admin-dashboard');
+    } else if (storedVisitorAdmin) {
+      setView('visitor-admin-dashboard');
+    } else if (viewParam === 'staff' || path.endsWith('/staff')) {
       setView('staff-portal');
     } else if (viewParam === 'admin' || path.endsWith('/admin')) {
       setView('admin-login');
@@ -171,22 +178,38 @@ function App() {
         )}
 
         {view === 'admin-login' && (
-          <AdminLogin onLoginSuccess={(email) => { setAdminEmail(email); setView('admin-dashboard'); }} />
+          <AdminLogin onLoginSuccess={(email) => { 
+            setAdminEmail(email); 
+            localStorage.setItem('ten80_active_admin_email', email);
+            setView('admin-dashboard'); 
+          }} />
         )}
 
         {view === 'admin-dashboard' && adminEmail && (
-          <AdminDashboard adminEmail={adminEmail} onLogout={() => { setAdminEmail(null); setView('staff-portal'); }} />
+          <AdminDashboard adminEmail={adminEmail} onLogout={() => { 
+            setAdminEmail(null); 
+            localStorage.removeItem('ten80_active_admin_email');
+            setView('staff-portal'); 
+          }} />
         )}
 
         {view === 'visitor-admin-login' && (
           <VisitorAdminLogin 
-            onLoginSuccess={(email) => { setVisitorAdminEmail(email); setView('visitor-admin-dashboard'); }} 
+            onLoginSuccess={(email) => { 
+              setVisitorAdminEmail(email); 
+              localStorage.setItem('ten80_active_visitor_admin_email', email);
+              setView('visitor-admin-dashboard'); 
+            }} 
             onBackToClock={() => setView('staff-portal')}
           />
         )}
 
         {view === 'visitor-admin-dashboard' && visitorAdminEmail && (
-          <VisitorAdminDashboard adminEmail={visitorAdminEmail} onLogout={() => { setVisitorAdminEmail(null); setView('staff-portal'); }} />
+          <VisitorAdminDashboard adminEmail={visitorAdminEmail} onLogout={() => { 
+            setVisitorAdminEmail(null); 
+            localStorage.removeItem('ten80_active_visitor_admin_email');
+            setView('staff-portal'); 
+          }} />
         )}
       </div>
     </div>
