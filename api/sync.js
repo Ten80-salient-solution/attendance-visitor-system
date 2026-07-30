@@ -1,6 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
@@ -13,7 +11,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const targetUrl = 'http://198.54.114.177/api/sync.php';
   
   try {
-    const options: RequestInit = {
+    const options = {
       method: req.method,
       headers: {
         'Content-Type': 'application/json',
@@ -23,7 +21,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     if (req.method === 'POST' || req.method === 'PUT') {
-      // Forward request body
       options.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
     }
 
@@ -33,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const body = await apiRes.text();
     return res.status(apiRes.status).send(body);
-  } catch (error: any) {
+  } catch (error) {
     return res.status(500).json({
       status: 'error',
       message: 'Proxy connection to cPanel failed: ' + error.message
