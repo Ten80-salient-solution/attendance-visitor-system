@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Users, MapPin, Search, Calendar, Filter, FileDown, LogOut, 
   LayoutDashboard, FileSpreadsheet, Map, ShieldAlert, Clock, 
-  MapIcon, ShieldCheck, RefreshCw
+  MapIcon, ShieldCheck, RefreshCw, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
   getSettings, getVisitors, saveVisitors, getAuditLogs, 
@@ -18,6 +18,7 @@ interface VisitorAdminDashboardProps {
 
 export const VisitorAdminDashboard: React.FC<VisitorAdminDashboardProps> = ({ adminEmail, onLogout }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'map' | 'audit'>('overview');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   
   // Data states
   const [settings, setSettings] = useState<OfficeSettings>(getSettings());
@@ -348,74 +349,120 @@ export const VisitorAdminDashboard: React.FC<VisitorAdminDashboardProps> = ({ ad
   const visitorsCheckedOut = visitors.filter(v => v.status === 'Checked Out').length;
 
   return (
-    <div className="dashboard-container">
+    <div className="admin-layout animated-fadeIn">
       
       {/* Side Bar Navigation */}
-      <aside className="sidebar" style={{ borderRight: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)' }}>
-        <div className="sidebar-header" style={{ borderBottom: '1px solid var(--border-color)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(168, 85, 247, 0.15)', color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-              MF
-            </div>
-            <div>
-              <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)' }}>Multiforte Resources</h4>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Visitor Admin</span>
-            </div>
+      <aside className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`} style={{ borderRight: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)' }}>
+        <div className="sidebar-header" style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: isSidebarCollapsed ? '1rem 0.5rem' : '1.5rem 1rem' }}>
+          <div style={{ display: 'flex', justifyContent: isSidebarCollapsed ? 'center' : 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              style={{ 
+                padding: '0.4rem', 
+                borderRadius: 'var(--radius-full)', 
+                width: '32px', 
+                height: '32px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-tertiary)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                transition: 'transform var(--transition-fast)'
+              }}
+              title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            >
+              {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
           </div>
+          {!isSidebarCollapsed && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(168, 85, 247, 0.15)', color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>
+                MF
+              </div>
+              <div>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Multiforte Resources</h4>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Visitor Admin</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <nav className="sidebar-menu">
           <div 
             onClick={() => { setActiveTab('overview'); setSelectedCoordinates(null); }} 
             className={`sidebar-link ${activeTab === 'overview' ? 'active' : ''}`}
-            style={activeTab === 'overview' ? { color: 'var(--accent-purple)', backgroundColor: 'rgba(168, 85, 247, 0.08)' } : {}}
+            style={{ 
+              justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+              color: activeTab === 'overview' ? 'var(--accent-purple)' : undefined,
+              backgroundColor: activeTab === 'overview' ? 'rgba(168, 85, 247, 0.08)' : undefined
+            }}
+            title={isSidebarCollapsed ? "Overview" : ""}
           >
             <LayoutDashboard size={18} />
-            <span>Overview</span>
+            {!isSidebarCollapsed && <span>Overview</span>}
           </div>
 
           <div 
             onClick={() => setActiveTab('visitors')} 
             className={`sidebar-link ${activeTab === 'visitors' ? 'active' : ''}`}
-            style={activeTab === 'visitors' ? { color: 'var(--accent-purple)', backgroundColor: 'rgba(168, 85, 247, 0.08)' } : {}}
+            style={{ 
+              justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+              color: activeTab === 'visitors' ? 'var(--accent-purple)' : undefined,
+              backgroundColor: activeTab === 'visitors' ? 'rgba(168, 85, 247, 0.08)' : undefined
+            }}
+            title={isSidebarCollapsed ? "Visitor Logs" : ""}
           >
             <FileSpreadsheet size={18} />
-            <span>Visitor Logs</span>
+            {!isSidebarCollapsed && <span>Visitor Logs</span>}
           </div>
 
           <div 
             onClick={() => setActiveTab('map')} 
             className={`sidebar-link ${activeTab === 'map' ? 'active' : ''}`}
-            style={activeTab === 'map' ? { color: 'var(--accent-purple)', backgroundColor: 'rgba(168, 85, 247, 0.08)' } : {}}
+            style={{ 
+              justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+              color: activeTab === 'map' ? 'var(--accent-purple)' : undefined,
+              backgroundColor: activeTab === 'map' ? 'rgba(168, 85, 247, 0.08)' : undefined
+            }}
+            title={isSidebarCollapsed ? "Interactive Map" : ""}
           >
             <Map size={18} />
-            <span>Interactive Map</span>
+            {!isSidebarCollapsed && <span>Interactive Map</span>}
           </div>
 
           <div 
             onClick={() => setActiveTab('audit')} 
             className={`sidebar-link ${activeTab === 'audit' ? 'active' : ''}`}
-            style={activeTab === 'audit' ? { color: 'var(--accent-purple)', backgroundColor: 'rgba(168, 85, 247, 0.08)' } : {}}
+            style={{ 
+              justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+              color: activeTab === 'audit' ? 'var(--accent-purple)' : undefined,
+              backgroundColor: activeTab === 'audit' ? 'rgba(168, 85, 247, 0.08)' : undefined
+            }}
+            title={isSidebarCollapsed ? "Access Audits" : ""}
           >
             <ShieldAlert size={18} />
-            <span>Access Audits</span>
+            {!isSidebarCollapsed && <span>Access Audits</span>}
           </div>
         </nav>
 
-        <div className="sidebar-footer" style={{ borderTop: '1px solid var(--border-color)' }}>
+        <div className="sidebar-footer" style={{ borderTop: '1px solid var(--border-color)', padding: isSidebarCollapsed ? '1rem 0.5rem' : '1.5rem 1rem' }}>
           <button 
             onClick={onLogout} 
             className="sidebar-link btn-danger" 
-            style={{ width: '100%', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}
+            style={{ width: '100%', display: 'flex', gap: '0.5rem', justifyContent: 'center', border: 'none' }}
+            title={isSidebarCollapsed ? "Exit Dashboard" : ""}
           >
             <LogOut size={16} />
-            <span>Exit Dashboard</span>
+            {!isSidebarCollapsed && <span>Exit Dashboard</span>}
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="dashboard-main">
+      <main className="admin-content">
         
         {/* Header toolbar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>

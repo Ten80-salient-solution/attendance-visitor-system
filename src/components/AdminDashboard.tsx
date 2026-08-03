@@ -3,7 +3,7 @@ import {
   LayoutDashboard, UserCheck, Users, MapPin, Sliders, 
   ClipboardList, QrCode, LogOut, Search, FileDown, 
   Plus, Trash2, Calendar, Filter, Clock, UserMinus, ShieldAlert, Info, Key,
-  PieChart, Briefcase
+  PieChart, Briefcase, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
   getSettings, getStaff, addStaff, removeStaff, saveStaff,
@@ -20,6 +20,7 @@ interface AdminDashboardProps {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLogout }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'attendance' | 'visitors' | 'map' | 'settings' | 'audit' | 'qrcode'>('overview');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   
   // Data States
   const [settings, setSettings] = useState(getSettings());
@@ -815,97 +816,136 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
   return (
     <div className="admin-layout animated-fadeIn">
       {/* Sidebar Navigation */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-menu">
-          <div className="sidebar-link" style={{ pointerEvents: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', paddingLeft: '1rem' }}>
-            Operations Monitor
+          {/* Collapse Toggle Button */}
+          <div style={{ display: 'flex', justifyContent: isSidebarCollapsed ? 'center' : 'flex-end', padding: '0 0.5rem 1.25rem 0.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1rem' }}>
+            <button
+              type="button"
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              style={{ 
+                padding: '0.4rem', 
+                borderRadius: 'var(--radius-full)', 
+                width: '32px', 
+                height: '32px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-tertiary)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                transition: 'transform var(--transition-fast)'
+              }}
+              title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            >
+              {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
           </div>
+
+          {!isSidebarCollapsed && (
+            <div className="sidebar-link" style={{ pointerEvents: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', paddingLeft: '1rem' }}>
+              Operations Monitor
+            </div>
+          )}
           <button 
             type="button" 
             onClick={() => setActiveTab('overview')} 
             className={`sidebar-link ${activeTab === 'overview' ? 'active' : ''}`}
-            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
+            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}
+            title={isSidebarCollapsed ? "Overview" : ""}
           >
             <LayoutDashboard size={18} />
-            Overview
+            {!isSidebarCollapsed && <span>Overview</span>}
           </button>
           
           <button 
             type="button" 
             onClick={() => setActiveTab('map')} 
             className={`sidebar-link ${activeTab === 'map' ? 'active' : ''}`}
-            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
+            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}
+            title={isSidebarCollapsed ? "Map Monitor" : ""}
           >
             <MapPin size={18} />
-            Map Monitor
+            {!isSidebarCollapsed && <span>Map Monitor</span>}
           </button>
 
-          <div className="sidebar-link" style={{ pointerEvents: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', paddingLeft: '1rem', marginTop: '1rem' }}>
-            Data Tables
-          </div>
+          {!isSidebarCollapsed && (
+            <div className="sidebar-link" style={{ pointerEvents: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', paddingLeft: '1rem', marginTop: '1rem' }}>
+              Data Tables
+            </div>
+          )}
 
           <button 
             type="button" 
             onClick={() => setActiveTab('attendance')} 
             className={`sidebar-link ${activeTab === 'attendance' ? 'active' : ''}`}
-            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
+            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}
+            title={isSidebarCollapsed ? "Staff Attendance" : ""}
           >
             <UserCheck size={18} />
-            Staff Attendance
+            {!isSidebarCollapsed && <span>Staff Attendance</span>}
           </button>
 
           <button 
             type="button" 
             onClick={() => setActiveTab('visitors')} 
             className={`sidebar-link ${activeTab === 'visitors' ? 'active' : ''}`}
-            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
+            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}
+            title={isSidebarCollapsed ? "Visitor Log" : ""}
           >
             <Users size={18} />
-            Visitor Log
+            {!isSidebarCollapsed && <span>Visitor Log</span>}
           </button>
 
-          <div className="sidebar-link" style={{ pointerEvents: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', paddingLeft: '1rem', marginTop: '1rem' }}>
-            Security & Config
-          </div>
+          {!isSidebarCollapsed && (
+            <div className="sidebar-link" style={{ pointerEvents: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', paddingLeft: '1rem', marginTop: '1rem' }}>
+              Security & Config
+            </div>
+          )}
 
           <button 
             type="button" 
             onClick={() => setActiveTab('settings')} 
             className={`sidebar-link ${activeTab === 'settings' ? 'active' : ''}`}
-            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
+            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}
+            title={isSidebarCollapsed ? "Office Settings" : ""}
           >
             <Sliders size={18} />
-            Office Settings
+            {!isSidebarCollapsed && <span>Office Settings</span>}
           </button>
 
           <button 
             type="button" 
             onClick={() => setActiveTab('audit')} 
             className={`sidebar-link ${activeTab === 'audit' ? 'active' : ''}`}
-            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
+            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}
+            title={isSidebarCollapsed ? "Audit Logs" : ""}
           >
             <ClipboardList size={18} />
-            Audit Logs
+            {!isSidebarCollapsed && <span>Audit Logs</span>}
           </button>
 
           <button 
             type="button" 
             onClick={() => setActiveTab('qrcode')} 
             className={`sidebar-link ${activeTab === 'qrcode' ? 'active' : ''}`}
-            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
+            style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}
+            title={isSidebarCollapsed ? "Entrance QR Code" : ""}
           >
             <QrCode size={18} />
-            Entrance QR Code
+            {!isSidebarCollapsed && <span>Entrance QR Code</span>}
           </button>
         </div>
 
         <button 
           onClick={handleLogoutClick}
           className="sidebar-link btn-danger" 
-          style={{ border: 'none', color: 'white', marginTop: '2rem', display: 'flex', gap: '0.5rem', width: '100%', cursor: 'pointer' }}
+          style={{ border: 'none', color: 'white', marginTop: '2rem', display: 'flex', gap: '0.5rem', width: '100%', cursor: 'pointer', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}
+          title={isSidebarCollapsed ? "Secure Sign Out" : ""}
         >
           <LogOut size={16} />
-          Secure Sign Out
+          {!isSidebarCollapsed && <span>Secure Sign Out</span>}
         </button>
       </aside>
 
