@@ -844,6 +844,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminEmail, onLo
           </div>
 
           {!isSidebarCollapsed && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0 0.5rem 1rem 0.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1rem' }}>
+              <img src="/logo.jpg" alt="Ten80 Logo" style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', objectFit: 'contain', backgroundColor: 'white', padding: '2px', border: '1px solid var(--border-color)', flexShrink: 0 }} />
+              <div>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Ten80 Salient</h4>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Super Admin</span>
+              </div>
+            </div>
+          )}
+
+          {!isSidebarCollapsed && (
             <div className="sidebar-link" style={{ pointerEvents: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', paddingLeft: '1rem' }}>
               Operations Monitor
             </div>

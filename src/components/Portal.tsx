@@ -218,7 +218,10 @@ export const Portal: React.FC<PortalProps> = ({ initialRole = 'none' }) => {
             <ArrowLeft size={16} /> Back
           </button>
 
-          <div className="portal-header">
+          <div className="portal-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+              <img src="/logo.jpg" alt="Ten80 Logo" style={{ width: '70px', height: '70px', borderRadius: 'var(--radius-md)', objectFit: 'contain', backgroundColor: 'white', padding: '3px', border: '1px solid var(--border-color)' }} />
+            </div>
             <h3>Visitor Management</h3>
             <p>Welcome! Are you arriving or departing the office space?</p>
           </div>

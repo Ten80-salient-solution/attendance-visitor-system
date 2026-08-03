@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Mail, Lock, AlertTriangle, Eye, EyeOff, ArrowLeft, Check, Key } from 'lucide-react';
+import { Mail, Lock, AlertTriangle, Eye, EyeOff, ArrowLeft, Check, Key } from 'lucide-react';
 import { addAuditLog, syncWithCloud } from '../utils/mockDb';
 
 interface VisitorAdminLoginProps {
@@ -162,8 +162,8 @@ export const VisitorAdminLogin: React.FC<VisitorAdminLoginProps> = ({ onLoginSuc
       {view === 'login' && (
         <>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(168, 85, 247, 0.1)', color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
-              <ShieldCheck size={30} />
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <img src="/logo.jpg" alt="Ten80 Logo" style={{ width: '70px', height: '70px', borderRadius: 'var(--radius-md)', objectFit: 'contain', backgroundColor: 'white', padding: '3px', border: '1px solid var(--border-color)' }} />
             </div>
             <h2>Visitor Admin Gateway</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Multiforte Resources Limited</p>

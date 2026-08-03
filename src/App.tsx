@@ -74,12 +74,12 @@ function App() {
         }} style={{ cursor: 'pointer' }}>
           {view === 'visitor-admin-login' || view === 'visitor-admin-dashboard' ? (
             <>
-              <div className="brand-icon" style={{ backgroundColor: 'rgba(168, 85, 247, 0.15)', color: 'var(--accent-purple)' }}>MF</div>
+              <img src="/logo.jpg" alt="Logo" style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', objectFit: 'contain', backgroundColor: 'white', padding: '2px', border: '1px solid var(--border-color)', flexShrink: 0 }} />
               <span>Multiforte Resources Limited</span>
             </>
           ) : (
             <>
-              <div className="brand-icon">T8</div>
+              <img src="/logo.jpg" alt="Logo" style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', objectFit: 'contain', backgroundColor: 'white', padding: '2px', border: '1px solid var(--border-color)', flexShrink: 0 }} />
               <span>Ten80 Salient Solutions</span>
             </>
           )}

@@ -443,6 +443,9 @@ export const StaffPortal: React.FC = () => {
       
       {/* HEADER TITLE */}
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+          <img src="/logo.jpg" alt="Ten80 Logo" style={{ width: '70px', height: '70px', borderRadius: 'var(--radius-md)', objectFit: 'contain', backgroundColor: 'white', padding: '3px', border: '1px solid var(--border-color)' }} />
+        </div>
         <h2 style={{ fontSize: '1.8rem', background: 'linear-gradient(135deg, var(--accent-indigo), var(--accent-purple))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 'bold' }}>
           Ten80 Staff Portal
         </h2>

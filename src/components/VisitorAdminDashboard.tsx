@@ -379,9 +379,7 @@ export const VisitorAdminDashboard: React.FC<VisitorAdminDashboardProps> = ({ ad
           </div>
           {!isSidebarCollapsed && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(168, 85, 247, 0.15)', color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>
-                MF
-              </div>
+              <img src="/logo.jpg" alt="Ten80 Logo" style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', objectFit: 'contain', backgroundColor: 'white', padding: '2px', border: '1px solid var(--border-color)', flexShrink: 0 }} />
               <div>
                 <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Multiforte Resources</h4>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Visitor Admin</span>
